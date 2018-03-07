@@ -89,6 +89,7 @@ struct _GstUDPSrc {
   guint   keep_alive_time;
   guint   keep_alive_len;
   gchar    keep_alive_str[50];
+  guint    keep_alive_cnt;
   gboolean  nat_flag;
   gchar     *nat_address;
   gint       nat_port;

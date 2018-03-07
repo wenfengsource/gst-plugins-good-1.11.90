@@ -701,7 +701,11 @@ gst_udpsrc_init (GstUDPSrc * udpsrc)
 	udpsrc->keep_alive_len = 9;
 	memset(udpsrc->keep_alive_str,0 ,50);
 	//udpsrc->keep_alive_str = g_strdup ("helloword");
-	sprintf(udpsrc->keep_alive_str,"%s", "helloword");
+	//sprintf(udpsrc->keep_alive_str,"%s", "helloword");
+        udpsrc->keep_alive_str[0] = 0x80;
+		udpsrc->keep_alive_str[1] = 0xc9;
+		udpsrc->keep_alive_str[2] = 0x00;
+		udpsrc->keep_alive_str[3] = 0x01;
     udpsrc->nat_flag = 0;
     udpsrc->nat_address = g_strdup (UDP_DEFAULT_MULTICAST_GROUP);
  	udpsrc->nat_port = UDP_DEFAULT_PORT;
@@ -923,9 +927,17 @@ gst_udpsrc_free_cancellable (GstUDPSrc * src)
 	else
 	{
 		//int tmp =0;
-		 
-		  g_socket_send_to (udpsrc->used_socket,udpsrc->saddr ,
-		udpsrc->keep_alive_str, udpsrc->keep_alive_len,  NULL, &err);
+		 guint *p = (guint *)&udpsrc->keep_alive_str[4];
+   		 
+         udpsrc->keep_alive_cnt++;
+         *p =  htonl(udpsrc->keep_alive_cnt);
+
+	 	  g_socket_send_to (udpsrc->used_socket,udpsrc->saddr ,
+	 	udpsrc->keep_alive_str,8, NULL, &err);
+
+ // g_socket_send_to (udpsrc->used_socket,udpsrc->saddr ,
+//		"helloworld",sizeof("helloworld"), NULL, &err);
+
 	//	printf("send keep alive %d \n", tmp);
 		return TRUE;
 	}
@@ -1328,7 +1340,11 @@ gst_udpsrc_set_property (GObject * object, guint prop_id, const GValue * value,
  		//g_free (udpsrc->keep_alive_str); 
  	 if ((group1 = g_value_get_string (value)))
          
-  		sprintf(udpsrc->keep_alive_str,"%s",group1);
+  		//sprintf(udpsrc->keep_alive_str,"%s",group1);
+		udpsrc->keep_alive_str[0] = 0x80;
+		udpsrc->keep_alive_str[1] = 0xc9;
+		udpsrc->keep_alive_str[2] = 0x00;
+		udpsrc->keep_alive_str[3] = 0x01;
       //  udpsrc->keep_alive_str = g_strdup (value);
 
 		//printf("------%s \n",udpsrc->keep_alive_str);
