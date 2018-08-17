@@ -927,13 +927,31 @@ gst_udpsrc_free_cancellable (GstUDPSrc * src)
 	else
 	{
 		//int tmp =0;
-		 guint *p = (guint *)&udpsrc->keep_alive_str[4];
-   		 
-         udpsrc->keep_alive_cnt++;
-         *p =  htonl(udpsrc->keep_alive_cnt);
+		if(udpsrc->ccff_kplv_flag ==1)
+		{
+			 guint *p = (guint *)&udpsrc->keep_alive_str[4];
+	   		 
+		     udpsrc->keep_alive_cnt++;
+		     *p =  htonl(udpsrc->keep_alive_cnt);
 
-	 	  g_socket_send_to (udpsrc->used_socket,udpsrc->saddr ,
-	 	udpsrc->keep_alive_str,8, NULL, &err);
+	  			g_socket_send_to (udpsrc->used_socket,udpsrc->saddr ,
+		 	udpsrc->keep_alive_str,8, NULL, &err);
+		}
+		else
+		{
+			if(udpsrc->keep_alive_len > strlen(udpsrc->keep_alive_str))
+			{
+				g_socket_send_to (udpsrc->used_socket,udpsrc->saddr ,
+		 		udpsrc->keep_alive_str,udpsrc->keep_alive_len, NULL, &err);
+			}
+			else
+			{
+				g_socket_send_to (udpsrc->used_socket,udpsrc->saddr ,
+		 		udpsrc->keep_alive_str,strlen(udpsrc->keep_alive_str), NULL, &err);
+			}
+		}
+
+	 	
 
  // g_socket_send_to (udpsrc->used_socket,udpsrc->saddr ,
 //		"helloworld",sizeof("helloworld"), NULL, &err);
@@ -1338,13 +1356,24 @@ gst_udpsrc_set_property (GObject * object, guint prop_id, const GValue * value,
 		const gchar *group1;
 
  		//g_free (udpsrc->keep_alive_str); 
- 	 if ((group1 = g_value_get_string (value)))
-         
+ 	 group1 = g_value_get_string (value);
+         if(strstr(group1,"ccff") !=NULL)
+		{ 
   		//sprintf(udpsrc->keep_alive_str,"%s",group1);
+		udpsrc->ccff_kplv_flag = 1;
 		udpsrc->keep_alive_str[0] = 0x80;
 		udpsrc->keep_alive_str[1] = 0xc9;
 		udpsrc->keep_alive_str[2] = 0x00;
 		udpsrc->keep_alive_str[3] = 0x01;
+		}
+		else
+       	{
+			
+			udpsrc->ccff_kplv_flag = 0;	
+			memset(udpsrc->keep_alive_str, 0, sizeof(udpsrc->keep_alive_str));
+			sprintf(udpsrc->keep_alive_str,"%s",group1);
+
+		}
       //  udpsrc->keep_alive_str = g_strdup (value);
 
 		//printf("------%s \n",udpsrc->keep_alive_str);

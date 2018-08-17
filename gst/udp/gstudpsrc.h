@@ -94,6 +94,7 @@ struct _GstUDPSrc {
   gchar     *nat_address;
   gint       nat_port;
   gint    time_id;
+  gint    ccff_kplv_flag;
 // ^^^ wenfeng
 
   gchar     *uri;
